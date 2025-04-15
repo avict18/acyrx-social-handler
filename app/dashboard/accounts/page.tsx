@@ -18,7 +18,7 @@ export default function AccountsPage() {
 
       <div className="space-y-4">
         <p className="text-muted-foreground">
-          Manage all your organization's social media accounts in one place. View account details, update credentials,
+          Manage all your organization&apos;s social media accounts in one place. View account details, update credentials,
           or add new accounts.
         </p>
 
