@@ -28,8 +28,6 @@ export default function AddAccountPage() {
     setLoading(true)
 
     try {
-      // In a real app, you would send this data to your backend
-      // If platform is "other", use the customPlatform value instead
       const finalPlatform = platform === "other" ? customPlatform : platform
       console.log("Platform:", finalPlatform)
 
