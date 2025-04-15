@@ -35,7 +35,7 @@ export default function LoginPage() {
         setError("Invalid email or password")
       }
     } catch (err) {
-      setError("An error occurred during login")
+      setError("An error occurred during login"+err)
     } finally {
       setLoading(false)
     }
