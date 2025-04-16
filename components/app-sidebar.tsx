@@ -21,7 +21,7 @@ export function AppSidebar() {
   const pathname = usePathname()
 
   const isActive = (path: string) => {
-    return pathname === path || pathname?.startsWith(`${path}/`)
+    return pathname === path
   }
 
   return (
