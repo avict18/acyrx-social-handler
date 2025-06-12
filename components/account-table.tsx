@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Eye, EyeOff, PlusCircle } from "lucide-react";
+import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
   Dialog,
@@ -13,10 +13,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PlusCircle } from "lucide-react";
 
 async function getSocialAccounts() {
   const supabase = createClientComponentClient();
@@ -30,8 +30,8 @@ async function getSocialAccounts() {
 
 export default function AccountTable() {
   const [accounts, setAccounts] = useState<any[]>([]);
-  const [visiblePasswords, setVisiblePasswords] = useState<Record<number, boolean>>({});
-  const [accountToDelete, setAccountToDelete] = useState<number | null>(null);
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
+  const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -39,11 +39,10 @@ export default function AccountTable() {
   const [refreshData, setRefreshData] = useState(false);
   const [newAccount, setNewAccount] = useState({
     platform: "",
-    accountName: "",
-    email: "",
+    username: "",
     password: "",
-    addedBy: "",
-    addedOn: "",
+    url: "",
+    notes: "",
   });
 
   useEffect(() => {
@@ -55,7 +54,7 @@ export default function AccountTable() {
     loadAccounts();
   }, [refreshData]);
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setAccountToDelete(id);
     setDialogOpen(true);
   };
@@ -77,7 +76,7 @@ export default function AccountTable() {
     }
   };
 
-  const togglePasswordVisibility = (id: number) => {
+  const togglePasswordVisibility = (id: string) => {
     setVisiblePasswords((prev) => ({
       ...prev,
       [id]: !prev[id],
@@ -101,20 +100,17 @@ export default function AccountTable() {
 
   const handleCreate = async () => {
     const supabase = createClientComponentClient();
-    const { data, error } = await supabase.from('social_accounts').insert([newAccount]);
-
-    console.log(data);
+    const { error } = await supabase.from('social_accounts').insert([newAccount]);
 
     if (error) {
       console.error('Error creating account:', error);
     } else {
       setNewAccount({
         platform: "",
-        accountName: "",
-        email: "",
+        username: "",
         password: "",
-        addedBy: "",
-        addedOn: "",
+        url: "",
+        notes: "",
       });
       setRefreshData((prev) => !prev);
     }
@@ -128,12 +124,10 @@ export default function AccountTable() {
 
   const handleUpdate = async () => {
     const supabase = createClientComponentClient();
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('social_accounts')
       .update([accountToEdit])
       .eq('id', accountToEdit.id);
-
-    console.log(data);
 
     if (error) {
       console.error('Error updating account:', error);
@@ -150,11 +144,10 @@ export default function AccountTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Platform</TableHead>
-              <TableHead>Account Name</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>Username</TableHead>
               <TableHead>Password</TableHead>
-              <TableHead>Added By</TableHead>
-              <TableHead>Added On</TableHead>
+              <TableHead>URL</TableHead>
+              <TableHead>Notes</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -164,18 +157,17 @@ export default function AccountTable() {
                 <TableCell>
                   <Badge className={getPlatformColor(account.platform)}>{account.platform}</Badge>
                 </TableCell>
-                <TableCell className="font-medium">{account.accountName}</TableCell>
-                <TableCell>{account.email}</TableCell>
+                <TableCell className="font-medium">{account.username}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {visiblePasswords[account.id] ? "password123" : "••••••••"}
+                    {visiblePasswords[account.id] ? account.password : "••••••••"}
                     <Button variant="ghost" size="icon" onClick={() => togglePasswordVisibility(account.id)}>
                       {visiblePasswords[account.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell>{account.addedBy}</TableCell>
-                <TableCell>{account.addedOn}</TableCell>
+                <TableCell>{account.url}</TableCell>
+                <TableCell>{account.notes}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="icon" onClick={() => handleEdit(account)}>
@@ -223,30 +215,18 @@ export default function AccountTable() {
               <Input
                 id="platform"
                 value={accountToEdit?.platform || ""}
-                onChange={(e) => setAccountToEdit({ ...accountToEdit, platform: e.target.value })} // Corrected line
+                onChange={(e) => setAccountToEdit({ ...accountToEdit, platform: e.target.value })}
                 className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="accountName" className="text-right">
-                Account Name
+              <Label htmlFor="username" className="text-right">
+                Username
               </Label>
               <Input
-                id="accountName"
-                value={accountToEdit?.accountName || ""}
-                onChange={(e) => setAccountToEdit({ ...accountToEdit, accountName: e.target.value })}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={accountToEdit?.email || ""}
-                onChange={(e) => setAccountToEdit({ ...accountToEdit, email: e.target.value })}
+                id="username"
+                value={accountToEdit?.username || ""}
+                onChange={(e) => setAccountToEdit({ ...accountToEdit, username: e.target.value })}
                 className="col-span-3"
               />
             </div>
@@ -263,24 +243,25 @@ export default function AccountTable() {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="addedBy" className="text-right">
-                Added By
+              <Label htmlFor="url" className="text-right">
+                URL
               </Label>
               <Input
-                id="addedBy"
-                value={accountToEdit?.addedBy || ""}
-                onChange={(e) => setAccountToEdit({ ...accountToEdit, addedBy: e.target.value })}
+                id="url"
+                type="url"
+                value={accountToEdit?.url || ""}
+                onChange={(e) => setAccountToEdit({ ...accountToEdit, url: e.target.value })}
                 className="col-span-3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="addedOn" className="text-right">
-                Added On
+              <Label htmlFor="notes" className="text-right">
+                Notes
               </Label>
               <Input
-                id="addedOn"
-                value={accountToEdit?.addedOn || ""}
-                onChange={(e) => setAccountToEdit({ ...accountToEdit, addedOn: e.target.value })}
+                id="notes"
+                value={accountToEdit?.notes || ""}
+                onChange={(e) => setAccountToEdit({ ...accountToEdit, notes: e.target.value })}
                 className="col-span-3"
               />
             </div>
@@ -293,6 +274,85 @@ export default function AccountTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Account</DialogTitle>
+            <DialogDescription>Create a new social media account.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="platform" className="text-right">
+                Platform
+              </Label>
+              <Input
+                id="platform"
+                value={newAccount?.platform || ""}
+                onChange={(e) => setNewAccount({ ...newAccount, platform: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="username" className="text-right">
+                Username
+              </Label>
+              <Input
+                id="username"
+                value={newAccount?.username || ""}
+                onChange={(e) => setNewAccount({ ...newAccount, username: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={newAccount?.password || ""}
+                onChange={(e) => setNewAccount({ ...newAccount, password: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="url" className="text-right">
+                URL
+              </Label>
+              <Input
+                id="url"
+                type="url"
+                value={newAccount?.url || ""}
+                onChange={(e) => setNewAccount({ ...newAccount, url: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="notes" className="text-right">
+                Notes
+              </Label>
+              <Input
+                id="notes"
+                value={newAccount?.notes || ""}
+                onChange={(e) => setNewAccount({ ...newAccount, notes: e.target.value })}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreate}>Create</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Button onClick={() => setCreateDialogOpen(true)}>
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Add Account
+      </Button>
     </>
   );
 }
