@@ -53,7 +53,7 @@ export default function AddAccountPage() {
         notes: notes,
         owner_id: user.id,
       }]);
-
+      console.log(data);
       if (error) {
         console.error("Error adding account:", error);
         // Handle error (e.g., display an error message to the user)

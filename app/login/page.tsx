@@ -31,6 +31,8 @@ export default function LoginPage() {
         password: password,
       });
 
+      console.log(data);
+      
       if (error) {
         setError(error.message);
       } else {

@@ -103,6 +103,8 @@ export default function AccountTable() {
     const supabase = createClientComponentClient();
     const { data, error } = await supabase.from('social_accounts').insert([newAccount]);
 
+    console.log(data);
+
     if (error) {
       console.error('Error creating account:', error);
     } else {
@@ -131,6 +133,8 @@ export default function AccountTable() {
       .update([accountToEdit])
       .eq('id', accountToEdit.id);
 
+    console.log(data);
+    
     if (error) {
       console.error('Error updating account:', error);
     } else {

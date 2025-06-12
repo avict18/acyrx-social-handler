@@ -33,6 +33,7 @@ export default function AddUserPage() {
           },
         },
       });
+      console.log(data);
 
       if (error) {
         console.error("Error adding user:", error);
