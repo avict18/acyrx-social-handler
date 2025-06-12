@@ -36,52 +36,44 @@ export default function DashboardPage() {
             <Share2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">48</div>
-            <p className="text-xs text-muted-foreground">+5 from last month</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Platforms</CardTitle>
-            <Share2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">Facebook, Twitter, Instagram, etc.</p>
+            <div className="text-2xl font-bold">5</div>
           </CardContent>
         </Card>
       </div>
 
       <Tabs defaultValue="accounts" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="accounts">Social Accounts</TabsTrigger>
+        <TabsList>
+          <TabsTrigger value="accounts">Accounts</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
         <TabsContent value="accounts" className="space-y-4">
-          <div className="flex justify-between">
-            <h2 className="text-xl font-semibold">Social Media Accounts</h2>
-            <Button asChild>
-              <Link href="/dashboard/accounts/add">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-medium">Accounts</h2>
+            <Link href="/dashboard/accounts/add">
+              <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add New Account
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
           <AccountTable />
         </TabsContent>
         <TabsContent value="users" className="space-y-4">
-          <div className="flex justify-between">
-            <h2 className="text-xl font-semibold">System Users</h2>
-            <Button asChild>
-              <Link href="/dashboard/users/add">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add New User
-              </Link>
-            </Button>
-          </div>
-          <UserTable />
-        </TabsContent>
-      </Tabs>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-medium">
+              Users
+            </h2>
+            <div>
+              <Button asChild>
+                <Link href="/dashboard/users/add">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add New User
+                </Link>
+              </Button>
+            </div>
+            <UserTable />
+          </TabsContent>
+        </Tabs>
     </div>
   )
 }
