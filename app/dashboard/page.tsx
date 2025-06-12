@@ -71,6 +71,7 @@ export default function DashboardPage() {
                 </Link>
               </Button>
             </div>
+            </div>
             <UserTable />
           </TabsContent>
         </Tabs>
