@@ -13,10 +13,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 async function getRegisteredUsers() {
-  const supabase = createClientComponentClient();
-  const { data: { users }, error } = await supabase.auth.listUsers();
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+    },
+  });
+  const { data: { users }, error } = await supabase.auth.admin.listUsers();
 
   if (error) {
     console.error("Error fetching users:", error);
@@ -27,7 +35,7 @@ async function getRegisteredUsers() {
 }
 
 export default function UserTable() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [refreshData, setRefreshData] = useState(false);
