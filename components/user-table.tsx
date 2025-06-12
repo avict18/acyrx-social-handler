@@ -1,10 +1,9 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Edit, Trash2 } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Edit, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,47 +11,57 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-// Mock data for users
-const initialUsers = [
-  { id: 1, name: "John Doe", email: "john@example.com", role: "Admin", createdAt: "2023-01-15" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", role: "Editor", createdAt: "2023-02-20" },
-  { id: 3, name: "Mike Johnson", email: "mike@example.com", role: "Viewer", createdAt: "2023-03-10" },
-  { id: 4, name: "Sarah Williams", email: "sarah@example.com", role: "Editor", createdAt: "2023-04-05" },
-  { id: 5, name: "Alex Brown", email: "alex@example.com", role: "Viewer", createdAt: "2023-05-12" },
-  { id: 6, name: "Emily Davis", email: "emily@example.com", role: "Editor", createdAt: "2023-06-18" },
-  { id: 7, name: "Chris Wilson", email: "chris@example.com", role: "Viewer", createdAt: "2023-07-22" },
-  { id: 8, name: "Taylor Moore", email: "taylor@example.com", role: "Admin", createdAt: "2023-08-30" },
-]
+async function getRegisteredUsers() {
+  const supabase = createClientComponentClient();
+  const { data: { users }, error } = await supabase.auth.listUsers();
+
+  if (error) {
+    console.error("Error fetching users:", error);
+    return [];
+  }
+
+  return users || [];
+}
 
 export default function UserTable() {
-  const [users, setUsers] = useState(initialUsers)
-  const [userToDelete, setUserToDelete] = useState<number | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [users, setUsers] = useState([]);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [refreshData, setRefreshData] = useState(false);
 
-  const handleDelete = (id: number) => {
-    setUserToDelete(id)
-    setDialogOpen(true)
-  }
+  useEffect(() => {
+    async function loadUsers() {
+      const userData = await getRegisteredUsers();
+      setUsers(userData);
+    }
 
-  const confirmDelete = () => {
+    loadUsers();
+  }, [refreshData]);
+
+  const handleDelete = (id: string) => {
+    setUserToDelete(id);
+    setDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
     if (userToDelete) {
-      setUsers(users.filter((user) => user.id !== userToDelete))
-      setUserToDelete(null)
-      setDialogOpen(false)
-    }
-  }
+      const supabase = createClientComponentClient();
+      const { error } = await supabase.auth.admin.deleteUser(userToDelete);
 
-  const getRoleBadge = (role: string) => {
-    const styles: Record<string, string> = {
-      Admin: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-      Editor: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-      Viewer: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    }
+      if (error) {
+        console.error("Error deleting user:", error);
+      } else {
+        setUsers(users.filter((user: any) => user.id !== userToDelete));
+      }
 
-    return styles[role] || "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
-  }
+      setUserToDelete(null);
+      setDialogOpen(false);
+      setRefreshData(prev => !prev)
+    }
+  };
 
   return (
     <>
@@ -62,20 +71,16 @@ export default function UserTable() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
+            {users.map((user: any) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell className="font-medium">{user.user_metadata?.full_name || user.email}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>
-                  <Badge className={getRoleBadge(user.role)}>{user.role}</Badge>
-                </TableCell>
-                <TableCell>{user.createdAt}</TableCell>
+                <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="icon">
@@ -96,9 +101,7 @@ export default function UserTable() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone.
-            </DialogDescription>
+            <DialogDescription>Are you sure you want to delete this user? This action cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
@@ -111,5 +114,5 @@ export default function UserTable() {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

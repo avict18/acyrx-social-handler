@@ -1,44 +1,73 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type React from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function AddAccountPage() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [platform, setPlatform] = useState<string>("")
-  const [customPlatform, setCustomPlatform] = useState<string>("")
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [platform, setPlatform] = useState<string>("");
+  const [customPlatform, setCustomPlatform] = useState<string>("");
+  const [accountName, setAccountName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [notes, setNotes] = useState<string>("");
+  const supabase = createClientComponentClient();
 
   const handlePlatformChange = (value: string) => {
-    setPlatform(value)
+    setPlatform(value);
     if (value !== "other") {
-      setCustomPlatform("")
+      setCustomPlatform("");
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const finalPlatform = platform === "other" ? customPlatform : platform
-      console.log("Platform:", finalPlatform)
+      const finalPlatform = platform === "other" ? customPlatform : platform;
 
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      router.push("/dashboard/accounts")
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        console.error("User not authenticated");
+        // Handle unauthenticated state (e.g., redirect to login)
+        return;
+      }
+
+      // Insert the new account into the database
+      const { data, error } = await supabase.from('social_accounts').insert([{
+        platform: finalPlatform,
+        username: accountName,
+        password: password, // Remember to hash this in a real application!
+        url: "", // You might want to add a URL field to your form
+        notes: notes,
+        owner_id: user.id,
+      }]);
+
+      if (error) {
+        console.error("Error adding account:", error);
+        // Handle error (e.g., display an error message to the user)
+      } else {
+        // Redirect to the accounts page after successful creation
+        router.push("/dashboard/accounts");
+      }
     } catch (error) {
-      console.error("Error adding account:", error)
+      console.error("Error adding account:", error);
+      // Handle error (e.g., display an error message to the user)
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="w-full p-6 space-y-6">
@@ -86,22 +115,46 @@ export default function AddAccountPage() {
 
             <div className="space-y-2">
               <Label htmlFor="accountName">Account Name/Handle</Label>
-              <Input id="accountName" placeholder="e.g., @AcryxTech" required />
+              <Input
+                id="accountName"
+                placeholder="e.g., @AcryxTech"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                required
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="email@example.com" required />
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes (Optional)</Label>
-              <Input id="notes" placeholder="Any additional information" />
+              <Input
+                id="notes"
+                placeholder="Any additional information"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
             </div>
 
             <div className="pt-4">
@@ -119,5 +172,5 @@ export default function AddAccountPage() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
