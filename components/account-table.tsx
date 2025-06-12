@@ -29,7 +29,7 @@ async function getSocialAccounts() {
 }
 
 export default function AccountTable() {
-  const [accounts, setAccounts] = useState([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
   const [visiblePasswords, setVisiblePasswords] = useState<Record<number, boolean>>({});
   const [accountToDelete, setAccountToDelete] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -134,7 +134,7 @@ export default function AccountTable() {
       .eq('id', accountToEdit.id);
 
     console.log(data);
-    
+
     if (error) {
       console.error('Error updating account:', error);
     } else {
